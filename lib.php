@@ -46,13 +46,13 @@ class cachestore_redis extends cache_store implements cache_is_configurable {
      * The host to connect to. This could be an IP address, a hostname or a socket path.
      * @var string
      */
-    protected $host;
+    protected $readhost;
 
     /**
      * The port to connect to. The default is 6379.
      * @var int
      */
-    protected $port = 6379;
+    protected $readport = 6379;
 
     /**
      * The connection timeout in seconds.
@@ -160,12 +160,12 @@ class cachestore_redis extends cache_store implements cache_is_configurable {
         }
 
         $config = get_config('cachestore_redis');
-        if (empty($config->testserver)) {
+        if (empty($config->testreadserver)) {
             return false;
         }
 
         $configuration = array();
-        $configuration['server'] = $config->testserver;
+        $configuration['readserver'] = $config->testreadserver;
 
         $store = new cachestore_redis('Test redis', $configuration);
         $store->initialise($definition);
@@ -181,16 +181,16 @@ class cachestore_redis extends cache_store implements cache_is_configurable {
      */
     public function __construct($name, array $configuration = array()) {
         $this->name = $name;
-        if (!array_key_exists('server', $configuration) || empty($configuration['server'])) {
+        if (!array_key_exists('readserver', $configuration) || empty($configuration['readserver'])) {
             // Nothing configured.
             return;
         }
-        $bits = explode(':', $configuration['server']);
+        $bits = explode(':', $configuration['readserver']);
         if ($bits[0]) {
-            $this->host = (string)$bits[0];
+            $this->readhost = (string)$bits[0];
         }
         if (isset($bits[1])) {
-            $this->port = (int)$bits[1];
+            $this->readport = (int)$bits[1];
         }
         if (isset($bits[2])) {
             $this->timeout = (float)$bits[2];
@@ -214,7 +214,7 @@ class cachestore_redis extends cache_store implements cache_is_configurable {
         if (isset($configuration['database']) && !empty($configuration['database'])) {
             $this->database = (int)$configuration['database'];
         }
-        if (empty($this->host)) {
+        if (empty($this->readhost)) {
             // Not properly configured.
             return;
         }
@@ -231,8 +231,8 @@ class cachestore_redis extends cache_store implements cache_is_configurable {
     protected function ensure_connection_ready() {
         if ($this->connection === null) {
             $this->connection = cachestore_redis_driver::instance(
-                $this->host,
-                $this->port,
+                $this->readhost,
+                $this->readport,
                 $this->database,
                 $this->timeout,
                 $this->persistentid,
@@ -373,7 +373,7 @@ class cachestore_redis extends cache_store implements cache_is_configurable {
      */
     public static function config_get_configuration_array($data) {
         return array(
-            'server' => $data->server
+            'readserver' => $data->readserver
         );
     }
 
@@ -385,8 +385,8 @@ class cachestore_redis extends cache_store implements cache_is_configurable {
      */
     public static function config_set_edit_form_data(moodleform $editform, array $config) {
         $data = array();
-        if (!empty($config['server'])) {
-            $data['server'] = $config['server'];
+        if (!empty($config['readserver'])) {
+            $data['readserver'] = $config['readserver'];
         }
         $editform->set_data($data);
     }

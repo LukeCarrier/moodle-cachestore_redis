@@ -40,9 +40,9 @@ class cachestore_redis_addinstance_form extends cachestore_addinstance_form {
      */
     protected function configuration_definition() {
         $form = $this->_form;
-        $form->addElement('text', 'server', get_string('server', 'cachestore_redis'));
-        $form->addHelpButton('server', 'server', 'cachestore_redis');
-        $form->addRule('server', get_string('required'), 'required');
-        $form->setType('server', PARAM_RAW);
+        $form->addElement('text', 'readserver', get_string('readserver', 'cachestore_redis'));
+        $form->addHelpButton('readserver', 'readserver', 'cachestore_redis');
+        $form->addRule('readserver', get_string('required'), 'required');
+        $form->setType('readserver', PARAM_RAW);
     }
 }

@@ -24,9 +24,9 @@
 
 defined('MOODLE_INTERNAL') || die();
 
-$string['server'] = 'Server';
-$string['server_help'] = 'Enter your server details here, host:post:timeout:persistentid:retrytimeout';
+$string['readserver'] = 'Read server';
+$string['readserver_help'] = 'Enter your server details here, host:post:timeout:persistentid:retrytimeout';
 $string['pluginname'] = 'Redis cachestore';
 $string['exception_operationnotconnected'] = 'The requested operation cannot be performed as there is not an open connection to a Redis server';
-$string['testserver'] = 'Test server';
-$string['testserver_desc'] = 'Enter the server to use for testing - usually 127.0.0.1';
+$string['testreadserver'] = 'Test read server';
+$string['testreadserver_desc'] = 'Enter the read server to use for testing - usually 127.0.0.1';
