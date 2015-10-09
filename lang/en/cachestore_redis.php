@@ -36,3 +36,5 @@ $string['testpersistentconnection'] = 'Use persistent connections during testing
 $string['testpersistentconnection_desc'] = 'Persistent connections yield marginally better performance, as they do not require Moodle to reconnect to the Redis server once per request, but are not compatible with all configurations';
 $string['testreadserver'] = 'Test read server';
 $string['testreadserver_desc'] = 'Enter the read server to use for testing - usually 127.0.0.1';
+$string['testwriteservers'] = 'Test write server';
+$string['testwriteservers_desc'] = 'Enter the write servers to use for testing';

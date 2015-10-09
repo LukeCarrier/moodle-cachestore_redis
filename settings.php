@@ -41,3 +41,12 @@ $settings->add(
         '', PARAM_RAW
     )
 );
+
+$settings->add(
+    new admin_setting_configtextarea(
+        'cachestore_redis/testwriteservers',
+        new lang_string('testwriteservers', 'cachestore_redis'),
+        new lang_string('testwriteservers_desc', 'cachestore_redis'),
+        '', PARAM_RAW, 60, 3
+    )
+);

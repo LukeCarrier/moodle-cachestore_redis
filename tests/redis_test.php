@@ -44,6 +44,7 @@ class cachestore_redis_test extends cachestore_tests {
     public function setUp() {
         if (defined('TEST_CACHESTORE_REDIS_TESTREADSERVER')) {
             set_config('testreadserver', TEST_CACHESTORE_REDIS_TESTREADSERVER, 'cachestore_redis');
+            set_config('testwriteservers', TEST_CACHESTORE_REDIS_TESTWRITESERVERS, 'cachestore_redis');
             $this->resetAfterTest();
         }
         parent::setUp();
