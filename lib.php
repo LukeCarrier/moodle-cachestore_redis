@@ -373,7 +373,8 @@ class cachestore_redis extends cache_store implements cache_is_configurable {
      */
     public static function config_get_configuration_array($data) {
         return array(
-            'readserver' => $data->readserver
+            'readserver' => $data->readserver,
+            'writeservers' => explode(PHP_EOL, $data->writeservers),
         );
     }
 
@@ -385,9 +386,15 @@ class cachestore_redis extends cache_store implements cache_is_configurable {
      */
     public static function config_set_edit_form_data(moodleform $editform, array $config) {
         $data = array();
+        
         if (!empty($config['readserver'])) {
             $data['readserver'] = $config['readserver'];
         }
+
+        if (!empty($config['writeservers'])) {
+            $data['writeservers'] = implode(PHP_EOL, $config['writeservers']);
+        }
+
         $editform->set_data($data);
     }
 
