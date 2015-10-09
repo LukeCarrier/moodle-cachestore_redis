@@ -164,8 +164,11 @@ class cachestore_redis extends cache_store implements cache_is_configurable {
             return false;
         }
 
-        $configuration = array();
-        $configuration['readserver'] = $config->testreadserver;
+        $configuration = array(
+            'persistentconnection' => $config->testpersistentconnection,
+            'readserver' => $config->testreadserver,
+            'writeservers' => $config->testwriteservers,
+        );
 
         $store = new cachestore_redis('Test redis', $configuration);
         $store->initialise($definition);
@@ -181,6 +184,7 @@ class cachestore_redis extends cache_store implements cache_is_configurable {
      */
     public function __construct($name, array $configuration = array()) {
         $this->name = $name;
+
         if (!array_key_exists('readserver', $configuration) || empty($configuration['readserver'])) {
             // Nothing configured.
             return;
@@ -373,6 +377,7 @@ class cachestore_redis extends cache_store implements cache_is_configurable {
      */
     public static function config_get_configuration_array($data) {
         return array(
+            'persistentconnection' => (bool) $data->persistentconnection,
             'readserver' => $data->readserver,
             'writeservers' => explode(PHP_EOL, $data->writeservers),
         );
@@ -386,6 +391,10 @@ class cachestore_redis extends cache_store implements cache_is_configurable {
      */
     public static function config_set_edit_form_data(moodleform $editform, array $config) {
         $data = array();
+
+        if (!empty($config['persistentconnection'])) {
+            $data['persistentconnection'] = $config['persistentconnection'];
+        }
         
         if (!empty($config['readserver'])) {
             $data['readserver'] = $config['readserver'];

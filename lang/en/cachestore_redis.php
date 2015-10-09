@@ -24,11 +24,15 @@
 
 defined('MOODLE_INTERNAL') || die();
 
+$string['persistentconnection'] = 'Use persistent connections?';
+$string['persistentconnection_help'] = 'Persistent connections yield marginally better performance, as they do not require Moodle to reconnect to the Redis server once per request, but are not compatible with all configurations';
 $string['readserver'] = 'Read server';
 $string['readserver_help'] = 'Enter your server details here, host:post:timeout:persistentid:retrytimeout';
 $string['writeservers'] = 'Write servers';
 $string['writeservers_help'] = 'All servers listed here will have any write operations applied to this store cascaded across them, allowing for load balancing across Redis servers.';
 $string['pluginname'] = 'Redis';
 $string['exception_operationnotconnected'] = 'The requested operation cannot be performed as there is not an open connection to a Redis server';
+$string['testpersistentconnection'] = 'Use persistent connections during testing';
+$string['testpersistentconnection_desc'] = 'Persistent connections yield marginally better performance, as they do not require Moodle to reconnect to the Redis server once per request, but are not compatible with all configurations';
 $string['testreadserver'] = 'Test read server';
 $string['testreadserver_desc'] = 'Enter the read server to use for testing - usually 127.0.0.1';
