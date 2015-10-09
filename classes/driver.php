@@ -96,10 +96,17 @@ class cachestore_redis_driver {
                                     $retryinterval = null) {
         static $instances = array();
         $hash = crc32($host.' '.$port.' '.$database);
+
         if (!isset($instances[$hash])) {
             $instances[$hash] = new cachestore_redis_driver($host, $port, $timeout, $persistentid, $retryinterval);
+        }
+
+        /* Maybe we disconnected it elsewhere -- this definitely happens during
+         * testing. */
+        if (!$instances[$hash]->is_connected()) {
             $instances[$hash]->connect($database);
         }
+
         return $instances[$hash];
     }
 
