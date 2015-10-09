@@ -43,36 +43,6 @@ class cachestore_redis extends cache_store implements cache_is_configurable {
     protected $persistentconnection = false;
 
     /**
-     * The host to connect to. This could be an IP address, a hostname or a socket path.
-     * @var string
-     */
-    protected $readhost;
-
-    /**
-     * The port to connect to. The default is 6379.
-     * @var int
-     */
-    protected $readport = 6379;
-
-    /**
-     * The connection timeout in seconds.
-     * @var float
-     */
-    protected $timeout;
-
-    /**
-     * The string to use to identify this connection if it is persistent.
-     * @var null|string
-     */
-    protected $persistentid = null;
-
-    /**
-     * The retry interval in milliseconds (optional)
-     * @var int
-     */
-    protected $retryinterval;
-
-    /**
      * Set to true is we are going to authenticate when opening a connection.
      * @var bool
      */
@@ -106,6 +76,13 @@ class cachestore_redis extends cache_store implements cache_is_configurable {
      * @var cachestore_redis_driver
      */
     protected $connection = null;
+
+    /**
+     * Read server connection information.
+     *
+     * @var cachestore_redis_connection_details
+     */
+    protected $readserver = null;
 
     /**
      * Static method to check if the store requirements are met.
@@ -185,47 +162,56 @@ class cachestore_redis extends cache_store implements cache_is_configurable {
     public function __construct($name, array $configuration = array()) {
         $this->name = $name;
 
-        if (!array_key_exists('readserver', $configuration) || empty($configuration['readserver'])) {
-            // Nothing configured.
-            return;
-        }
-        $bits = explode(':', $configuration['readserver']);
-        if ($bits[0]) {
-            $this->readhost = (string)$bits[0];
-        }
-        if (isset($bits[1])) {
-            $this->readport = (int)$bits[1];
-        }
-        if (isset($bits[2])) {
-            $this->timeout = (float)$bits[2];
-        }
-        if (isset($bits[4])) {
-            $this->persistentid = null;
-            $this->retryinterval = (int)$bits[4];
-        }
-        if (isset($configuration['persistentconnection']) && (bool)$configuration['persistentconnection']) {
-            $this->persistentconnection = true;
-            if (isset($bits[3])) {
-                $this->persistentid = (string)$bits[3];
-            } else {
-                $this->persistentid = 'moodle';
-            }
-        }
+        $this->persistentconnection = $configuration['persistentconnection'];
+
+        $this->readserver = $this->get_connection_details($configuration['readserver']);
+
         if (isset($configuration['authpassword']) && !empty($configuration['authpassword'])) {
             $this->authenticate = true;
             $this->authpassword = (string)$configuration['authpassword'];
         }
+
         if (isset($configuration['database']) && !empty($configuration['database'])) {
             $this->database = (int)$configuration['database'];
         }
-        if (empty($this->readhost)) {
-            // Not properly configured.
-            return;
-        }
+
         $this->isready = $this->ensure_connection_ready();
         if ($this->isready && debugging()) {
             $this->isready = $this->connection->ping();
         }
+    }
+
+    /**
+     * Split a server entry into its 5 parts.
+     *
+     * @param string $serverline
+     * @return mixed[]
+     */
+    protected function get_connection_details($serverline) {
+        $connection = new cachestore_redis_connection_details();
+        $parts = explode(':', $serverline);
+
+        if ($parts[0]) {
+            $connection->host = (string)$parts[0];
+        }
+
+        if (isset($parts[1])) {
+            $connection->port = (int)$parts[1];
+        }
+
+        if (isset($parts[2])) {
+            $connection->timeout = (float)$parts[2];
+        }
+
+        if (isset($parts[3])) {
+            $connection->persistentid = (string)$parts[3];
+        }
+
+        if (isset($parts[4])) {
+            $connection->retryinterval = (int)$parts[4];
+        }
+
+        return $connection;
     }
 
     /**
@@ -235,12 +221,12 @@ class cachestore_redis extends cache_store implements cache_is_configurable {
     protected function ensure_connection_ready() {
         if ($this->connection === null) {
             $this->connection = cachestore_redis_driver::instance(
-                $this->readhost,
-                $this->readport,
+                $this->readserver->host,
+                $this->readserver->port,
                 $this->database,
-                $this->timeout,
-                $this->persistentid,
-                $this->retryinterval
+                $this->readserver->timeout,
+                $this->readserver->persistentid,
+                $this->readserver->retryinterval
             );
             if ($this->connection->is_connected() && $this->authenticate) {
                 $this->connection->authenticate($this->authpassword);
