@@ -207,7 +207,7 @@ class cachestore_redis_driver {
      * @param string $method
      * @param cache_definition $definition
      */
-    public function set_interation_instance($method, cache_definition $definition) {
+    public function set_interaction_instance($method, cache_definition $definition) {
         $class = 'cachestore_redis_interaction_'.$method;
         $this->interaction = new $class($this->connection, $definition);
     }

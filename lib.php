@@ -73,9 +73,16 @@ class cachestore_redis extends cache_store implements cache_is_configurable {
     protected $isinitialised = false;
 
     /**
+     * Connection to read server.
      * @var cachestore_redis_driver
      */
-    protected $connection = null;
+    protected $readconnection = null;
+
+    /**
+     * Connections to write servers.
+     * @var cachestore_redis_driver[]
+     */
+    protected $writeconnections = array();
 
     /**
      * Read server connection information.
@@ -83,6 +90,23 @@ class cachestore_redis extends cache_store implements cache_is_configurable {
      * @var cachestore_redis_connection_details
      */
     protected $readserver = null;
+
+    /**
+     * Write server connection information.
+     *
+     * @var cachestore_redis_connection_details[]
+     */
+    protected $writeservers = array();
+
+    /**
+     * Cache definition.
+     *
+     * We need to store this as we need it to configure the write connections
+     * later.
+     *
+     * @var cache_definition
+     */
+    protected $definition;
 
     /**
      * Static method to check if the store requirements are met.
@@ -177,7 +201,19 @@ class cachestore_redis extends cache_store implements cache_is_configurable {
 
         $this->isready = $this->ensure_connection_ready();
         if ($this->isready && debugging()) {
-            $this->isready = $this->connection->ping();
+            $this->isready = $this->readconnection->ping();
+        }
+
+        // We'll prepare these details, but only connect when we want to write.
+        if (!empty($configuration['writeservers'])) {
+            // During testing this has to be declared as a string.
+            $writeservers = is_array($configuration['writeservers'])
+                    ? $configuration['writeservers']
+                    : explode(PHP_EOL, $configuration['writeservers']);
+
+            foreach ($writeservers as $writeserver) {
+                $this->writeservers[] = $this->get_connection_details($writeserver);
+            }
         }
     }
 
@@ -214,25 +250,47 @@ class cachestore_redis extends cache_store implements cache_is_configurable {
         return $connection;
     }
 
+    protected function connect(cachestore_redis_connection_details $details) {
+        $connection = cachestore_redis_driver::instance(
+            $details->host,
+            $details->port,
+            $this->database,
+            $details->timeout,
+            $details->persistentid,
+            $details->retryinterval
+        );
+        if ($connection->is_connected() && $this->authenticate) {
+            $connection->authenticate($this->authpassword);
+        }
+
+        return $connection;
+    }
+
     /**
-     * Ensures the Redis connection is ready for use.
+     * Ensures the Redis read connection is ready for use.
      * @return bool
      */
     protected function ensure_connection_ready() {
-        if ($this->connection === null) {
-            $this->connection = cachestore_redis_driver::instance(
-                $this->readserver->host,
-                $this->readserver->port,
-                $this->database,
-                $this->readserver->timeout,
-                $this->readserver->persistentid,
-                $this->readserver->retryinterval
-            );
-            if ($this->connection->is_connected() && $this->authenticate) {
-                $this->connection->authenticate($this->authpassword);
+        if ($this->readconnection === null) {
+            $this->readconnection = $this->connect($this->readserver);
+        }
+        return $this->readconnection->is_connected();
+    }
+
+    /**
+     * Ensures the Redis write connections are ready for use.
+     * @return bool
+     */
+    protected function ensure_write_ready() {
+        if (count($this->writeservers) && !count($this->writeconnections)) {
+            foreach ($this->writeservers as $writeserver) {
+                $connection = $this->connect($writeserver);
+                $connection->set_interaction_instance(
+                        'hash', $this->definition);
+
+                $this->writeconnections[] = $connection;
             }
         }
-        return $this->connection->is_connected();
     }
 
     /**
@@ -256,7 +314,9 @@ class cachestore_redis extends cache_store implements cache_is_configurable {
      * @param cache_definition $definition
      */
     public function initialise(cache_definition $definition) {
-        $this->connection->set_interation_instance('hash', $definition);
+        $this->definition = $definition;
+
+        $this->readconnection->set_interaction_instance('hash', $definition);
         $this->isinitialised = true;
     }
 
@@ -283,7 +343,7 @@ class cachestore_redis extends cache_store implements cache_is_configurable {
      * @return mixed The data that was associated with the key, or false if the key did not exist.
      */
     public function get($key) {
-        return $this->connection->get($key);
+        return $this->readconnection->get($key);
     }
 
     /**
@@ -296,7 +356,7 @@ class cachestore_redis extends cache_store implements cache_is_configurable {
      *      be set to false.
      */
     public function get_many($keys) {
-        return $this->connection->get_many($keys);
+        return $this->readconnection->get_many($keys);
     }
 
     /**
@@ -307,7 +367,11 @@ class cachestore_redis extends cache_store implements cache_is_configurable {
      * @return bool True if the operation was a success false otherwise.
      */
     public function set($key, $data) {
-        return $this->connection->set($key, $data);
+        $this->ensure_write_ready();
+
+        foreach ($this->writeconnections as $writeconnection) {
+            $writeconnection->set($key, $data);
+        }
     }
 
     /**
@@ -319,11 +383,19 @@ class cachestore_redis extends cache_store implements cache_is_configurable {
      *      sent ... if they care that is.
      */
     public function set_many(array $keyvaluearray) {
+        $this->ensure_write_ready();
+
         $values = array();
         foreach ($keyvaluearray as $pair) {
             $values[$pair['key']] = $pair['value'];
         }
-        return $this->connection->set_many($values);
+
+        $count = 0;
+        foreach ($this->writeconnections as $writeconnection) {
+            $count += $writeconnection->set_many($values);
+        }
+
+        return $count / count($this->writeconnections);
     }
 
     /**
@@ -333,7 +405,14 @@ class cachestore_redis extends cache_store implements cache_is_configurable {
      * @return bool Returns true if the operation was a success, false otherwise.
      */
     public function delete($key) {
-        return $this->connection->delete($key);
+        $this->ensure_write_ready();
+
+        $status = true;
+        foreach ($this->writeconnections as $writeconnections) {
+            $status = $status && $writeconnections->delete($key);
+        }
+
+        return $status;
     }
 
     /**
@@ -343,7 +422,14 @@ class cachestore_redis extends cache_store implements cache_is_configurable {
      * @return int The number of items successfully deleted.
      */
     public function delete_many(array $keys) {
-        return $this->connection->delete_many($keys);
+        $this->ensure_write_ready();
+
+        $count = 0;
+        foreach ($this->writeconnections as $writeconnection) {
+            $count += $writeconnection->delete_many($keys);
+        }
+
+        return $count / count($this->writeconnections);
     }
 
     /**
@@ -352,7 +438,14 @@ class cachestore_redis extends cache_store implements cache_is_configurable {
      * @return boolean True on success. False otherwise.
      */
     public function purge() {
-        return $this->connection->purge();
+        $this->ensure_write_ready();
+
+        $status = true;
+        foreach ($this->writeconnections as $writeconnection) {
+            $status = $status && $writeconnection->purge();
+        }
+
+        return $status;
     }
 
     /**
@@ -398,8 +491,15 @@ class cachestore_redis extends cache_store implements cache_is_configurable {
      */
     public function instance_deleted() {
         $this->ensure_connection_ready();
-        $this->connection->purge();
-        $this->connection->close();
-        $this->connection = null;
+        $this->ensure_write_ready();
+
+        foreach ($this->writeconnections as $writeconnection) {
+            $writeconnection->purge();
+            $writeconnection->close();
+            $writeconnection = null;
+        }
+
+        $this->readconnection->close();
+        $this->readconnection = null;
     }
 }
