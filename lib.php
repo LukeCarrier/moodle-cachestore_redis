@@ -370,9 +370,8 @@ class cachestore_redis extends cache_store implements cache_is_configurable {
         $this->ensure_write_ready();
 
         $status = true;
-
         foreach ($this->writeconnections as $writeconnection) {
-            $status = $status && $writeconnection->set($key, $data);
+            $status = $writeconnection->set($key, $data) && $status;
         }
 
         return $status;
@@ -413,7 +412,7 @@ class cachestore_redis extends cache_store implements cache_is_configurable {
 
         $status = true;
         foreach ($this->writeconnections as $writeconnection) {
-            $status = $status && $writeconnection->delete($key);
+            $status = $writeconnection->delete($key) && $status;
         }
 
         return $status;
@@ -446,7 +445,7 @@ class cachestore_redis extends cache_store implements cache_is_configurable {
 
         $status = true;
         foreach ($this->writeconnections as $writeconnection) {
-            $status = $status && $writeconnection->purge();
+            $status = $writeconnection->purge() && $status;
         }
 
         return $status;
