@@ -22,8 +22,10 @@
  * @license    http://www.gnu.org/copyleft/gpl.html GNU GPL v3 or later
  */
 
-use core\session\exception;
-use core\session\handler;
+namespace cachestore_redis\session\nonclustered;
+
+use cachestore_redis\session\base_handler;
+use cachestore_redis_connection_details;
 
 /**
  * The Redis cache store session driver class.
@@ -34,7 +36,7 @@ use core\session\handler;
  * @copyright  2014 Sam Hemelryk
  * @license    http://www.gnu.org/copyleft/gpl.html GNU GPL v3 or later
  */
-class cachestore_redis_session_handler extends handler {
+class handler extends base_handler {
     /**
      * Save path delimiter.
      * @var string
@@ -77,10 +79,7 @@ class cachestore_redis_session_handler extends handler {
      * @override \core\session\handler
      */
     public function init() {
-        if (!cachestore_redis::are_requirements_met()) {
-            throw new exception('sessionhandlerproblem', 'error', '', null,
-                                'Redis cache store reports that its requirements are not met');
-        }
+        parent::init();
 
         ini_set('session.save_handler', 'redis');
         ini_set('session.save_path',    $this->savepath);
@@ -93,54 +92,6 @@ class cachestore_redis_session_handler extends handler {
         set_time_limit($this->acquiretimeout);
 
         return parent::start();
-    }
-
-    /**
-     * @override \core\session\handler
-     */
-    public function session_exists($sid) {
-        $exists = false;
-
-        foreach ($this->get_connections() as $connection) {
-            if ($connection->exists($sid)) {
-                $exists = true;
-            }
-
-            $connection->close();
-        }
-
-        return $exists;
-    }
-
-    /**
-     * @override \core\session\handler
-     */
-    public function kill_all_sessions() {
-        global $DB;
-
-        $connections = $this->get_connections();
-        $sessions    = $DB->get_recordset('sessions', null, 'id DESC', 'id, sid');
-
-        foreach ($sessions as $session) {
-            foreach ($connections as $connection) {
-                $connection->delete($session->sid);
-            }
-        }
-        $sessions->close();
-
-        foreach ($connections as $connection) {
-            $connection->close();
-        }
-    }
-
-    /**
-     * @override \core\session\handler
-     */
-    public function kill_session($sid) {
-        foreach ($this->get_connections() as $connection) {
-            $connection->delete($sid);
-            $connection->close();
-        }
     }
 
     /**
@@ -191,5 +142,19 @@ class cachestore_redis_session_handler extends handler {
         }
 
         return $connections;
+    }
+
+    /**
+     * @override \cachestore_redis\session\base_handler
+     */
+    public function get_read_connections() {
+        return $this->get_connections();
+    }
+
+    /**
+     * @override \cachestore_redis\session\base_handler
+     */
+    public function get_write_connections() {
+        return $this->get_connections();
     }
 }

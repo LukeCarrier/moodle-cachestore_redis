@@ -36,7 +36,7 @@ $string['session'] = 'Session handling';
 $string['session_desc'] = 'This plugin also provides a session handler implementation. To enable it, you will need to place the following configuration options into <code>config.php</code>, above the include of <code>/lib/setup.php</code>:
 <pre>
     <code>
-        $CFG->session_handler_class   = \'cachestore_redis_session_handler\';
+        $CFG->session_handler_class   = \'\cachestore_redis\session\nonclustered\handler\';
         $CFG->session_redis_save_path = implode(\', \', array(
             \'tcp://127.0.0.1:6379?weight=1&persistent=0&timeout=30&prefix=abc\',
             \'tcp://127.0.0.1:6380?weight=1&persistent=0&timeout=30&prefix=abc\',
