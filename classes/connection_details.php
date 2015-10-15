@@ -49,6 +49,12 @@ class cachestore_redis_connection_details  {
     public $timeout;
 
     /**
+     * Is the connection persistent?
+     * @var bool
+     */
+    public $persistent;
+
+    /**
      * Persistent connection ID.
      * @var string
      */
@@ -59,4 +65,22 @@ class cachestore_redis_connection_details  {
      * @var int
      */
     public $retryinterval;
+
+    /**
+     * Server weight.
+     * @var int
+     */
+    public $weight;
+
+    /**
+     * Authentication password.
+     * @var string
+     */
+    public $auth;
+
+    /**
+     * Alternate database.
+     * @var int
+     */
+    public $database;
 }
