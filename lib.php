@@ -188,7 +188,7 @@ class cachestore_redis extends cache_store implements cache_is_configurable {
 
         $this->persistentconnection = $configuration['persistentconnection'];
 
-        $this->readserver = $this->get_connection_details($configuration['readserver']);
+        $this->readserver = static::get_connection_details($configuration['readserver']);
 
         if (isset($configuration['authpassword']) && !empty($configuration['authpassword'])) {
             $this->authenticate = true;
@@ -212,7 +212,7 @@ class cachestore_redis extends cache_store implements cache_is_configurable {
                     : explode(PHP_EOL, $configuration['writeservers']);
 
             foreach ($writeservers as $writeserver) {
-                $this->writeservers[] = $this->get_connection_details($writeserver);
+                $this->writeservers[] = static::get_connection_details($writeserver);
             }
         }
     }
@@ -223,7 +223,7 @@ class cachestore_redis extends cache_store implements cache_is_configurable {
      * @param string $serverline
      * @return mixed[]
      */
-    protected function get_connection_details($serverline) {
+    public static function get_connection_details($serverline) {
         $connection = new cachestore_redis_connection_details();
         $parts = explode(':', $serverline);
 
@@ -244,6 +244,9 @@ class cachestore_redis extends cache_store implements cache_is_configurable {
         }
 
         if (isset($parts[4])) {
+            /* See note about $reserved here:
+             * https://github.com/phpredis/phpredis/tree/master#connect-open */
+            $connection->persistentid = null;
             $connection->retryinterval = (int)$parts[4];
         }
 
