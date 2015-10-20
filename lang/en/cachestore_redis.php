@@ -33,7 +33,11 @@ $string['writeservers_help'] = 'All servers listed here will have any write oper
 $string['pluginname'] = 'Redis';
 $string['exception_operationnotconnected'] = 'The requested operation cannot be performed as there is not an open connection to a Redis server';
 $string['session'] = 'Session handling';
-$string['session_desc'] = 'This plugin also provides a session handler implementation. To enable it, you will need to place the following configuration options into <code>config.php</code>, above the include of <code>/lib/setup.php</code>:
+$string['session_desc'] = 'This plugin also provides two session handler implementations.
+
+<h1>Non-clustered</h1>
+
+In this configuration, session storage is load balanced across a set of weighted Redis servers. Place the following configuration options into <code>config.php</code>, above the include of <code>/lib/setup.php</code>:
 <pre>
     <code>
         $CFG->session_handler_class   = \'\cachestore_redis\session\nonclustered\handler\';
@@ -44,7 +48,19 @@ $string['session_desc'] = 'This plugin also provides a session handler implement
     </code>
 </pre>
 
-For formatting detail, see the <a href="https://github.com/phpredis/phpredis#php-session-handler">Redis session handler</a> documentation.';
+For formatting detail, see the <a href="https://github.com/phpredis/phpredis#php-session-handler">Redis session handler</a> documentation.
+
+<h1>Clustered (experimental)</h1>
+
+In this configuration, each application server reads its session data from a single server, and writes to session storage are synchronised across a set of Redis servers. To enable this configuration, place the following configuration options into <code>config.php</code>, above the include of <code>/lib/setup.php</code>:
+<pre>
+    <code>
+        $CFG->session_handler_class = \'cachestore_redis_clustered_session_handler\';
+        $CFG->session_redis_clustered_readserver = \'\';
+        $CFG->session_redis_clustered_writeservers = \'\';
+    </code>
+</pre>
+';
 $string['test'] = 'Testing configuration';
 $string['test_desc'] = 'Configuration to use during the cache store performance test. For PHPUnit configuration, see the directions in <code>README.md</code>.';
 $string['testpersistentconnection'] = 'Use persistent connections during testing';
@@ -53,3 +69,5 @@ $string['testreadserver'] = 'Test read server';
 $string['testreadserver_desc'] = 'Enter the read server to use for testing - usually 127.0.0.1';
 $string['testwriteservers'] = 'Test write server';
 $string['testwriteservers_desc'] = 'Enter the write servers to use for testing';
+$string['clusteredsessionhandlerproblem'] = 'Initialising the Redis session handler failed. Please notify the server administrator.';
+$string['clusteredsessionhandlererror'] = 'A Redis operation failed; the error was "{$a}"';
