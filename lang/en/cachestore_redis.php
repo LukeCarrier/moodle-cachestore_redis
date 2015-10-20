@@ -35,7 +35,7 @@ $string['exception_operationnotconnected'] = 'The requested operation cannot be 
 $string['session'] = 'Session handling';
 $string['session_desc'] = 'This plugin also provides two session handler implementations.
 
-<h1>Non-clustered</h1>
+<h4>Non-clustered</h4>
 
 In this configuration, session storage is load balanced across a set of weighted Redis servers. Place the following configuration options into <code>config.php</code>, above the include of <code>/lib/setup.php</code>:
 <pre>
@@ -48,18 +48,32 @@ In this configuration, session storage is load balanced across a set of weighted
     </code>
 </pre>
 
-For formatting detail, see the <a href="https://github.com/phpredis/phpredis#php-session-handler">Redis session handler</a> documentation.
+For formatting detail for each <code>save_path</code> item, see the <a href="https://github.com/phpredis/phpredis#php-session-handler">Redis session handler</a> documentation.
 
-<h1>Clustered (experimental)</h1>
+<h4>Clustered (experimental)</h4>
 
 In this configuration, each application server reads its session data from a single server, and writes to session storage are synchronised across a set of Redis servers. To enable this configuration, place the following configuration options into <code>config.php</code>, above the include of <code>/lib/setup.php</code>:
 <pre>
     <code>
-        $CFG->session_handler_class = \'cachestore_redis_clustered_session_handler\';
-        $CFG->session_redis_clustered_readserver = \'\';
-        $CFG->session_redis_clustered_writeservers = \'\';
+        $CFG->session_handler_class                  = \'\cachestore_redis\session\clustered\handler\';
+        $CFG->session_redis_clustered_acquiretimeout = 10;
+        $CFG->session_redis_clustered_persistent     = false;
+        $CFG->session_redis_clustered_readserver     = \'127.0.0.1:6379\';
+        $CFG->session_redis_clustered_writeservers   = implode(PHP_EOL, array(
+            \'127.0.0.1:6379\',
+            \'127.0.0.1:6380\',
+        ));
     </code>
 </pre>
+
+Each server entry is comprised of a colon-delimited (<code>:</code>) sequence of the following values:
+<ul>
+    <li><code>host</code> - the hostname or IP address of the host server or the path to the appropriate socket</li>
+    <li><code>port</code> - the port on which the server is bound</li>
+    <li><code>timeout</code> - the number of seconds to await completion of the connection</li>
+    <li><code>persistentid</code> - reserved and presently unused</li>
+    <li><code>retryinterval</code> - the number of seconds in between failures to wait before attempting to retry</li>
+</ul>
 ';
 $string['test'] = 'Testing configuration';
 $string['test_desc'] = 'Configuration to use during the cache store performance test. For PHPUnit configuration, see the directions in <code>README.md</code>.';
