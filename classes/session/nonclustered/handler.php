@@ -26,6 +26,7 @@ namespace cachestore_redis\session\nonclustered;
 
 use cachestore_redis\session\base_handler;
 use cachestore_redis_connection_details;
+use Redis;
 
 /**
  * The Redis cache store session driver class.
