@@ -121,7 +121,7 @@ class save_handler implements SessionHandlerInterface {
         $connections = $this->handler->get_write_connections();
         foreach ($connections as $connection) {
             $thisstatus = $connection->expire($sessionid, (int)$CFG->sessiontimeout);
-            $this->maybe_debug($thisstatus, $connection);
+            $this->maybe_debug($thisstatus && $sessiondata, $connection);
 
             $connection->close();
         }
