@@ -25,10 +25,28 @@
 defined('MOODLE_INTERNAL') || die;
 
 $settings->add(
+    new admin_setting_configcheckbox(
+        'cachestore_redis/testpersistentconnection',
+        new lang_string('testpersistentconnection', 'cachestore_redis'),
+        new lang_string('testpersistentconnection_desc', 'cachestore_redis'),
+        false
+    )
+);
+
+$settings->add(
+    new admin_setting_configtext(
+        'cachestore_redis/testreadserver',
+        new lang_string('testreadserver', 'cachestore_redis'),
+        new lang_string('testreadserver_desc', 'cachestore_redis'),
+        '', PARAM_RAW
+    )
+);
+
+$settings->add(
     new admin_setting_configtextarea(
-        'cachestore_redis/testserver',
-        new lang_string('testserver', 'cachestore_redis'),
-        new lang_string('testserver_desc', 'cachestore_redis'),
+        'cachestore_redis/testwriteservers',
+        new lang_string('testwriteservers', 'cachestore_redis'),
+        new lang_string('testwriteservers_desc', 'cachestore_redis'),
         '', PARAM_RAW, 60, 3
     )
 );
