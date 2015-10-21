@@ -25,6 +25,22 @@
 defined('MOODLE_INTERNAL') || die;
 
 $settings->add(
+    new admin_setting_heading(
+        'cachestore_redis/session',
+        new lang_string('session', 'cachestore_redis'),
+        new lang_string('session_desc', 'cachestore_redis')
+    )
+);
+
+$settings->add(
+    new admin_setting_heading(
+        'cachestore_redis/test',
+        new lang_string('test', 'cachestore_redis'),
+        new lang_string('test_desc', 'cachestore_redis')
+    )
+);
+
+$settings->add(
     new admin_setting_configcheckbox(
         'cachestore_redis/testpersistentconnection',
         new lang_string('testpersistentconnection', 'cachestore_redis'),
