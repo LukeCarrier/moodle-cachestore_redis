@@ -29,6 +29,17 @@
  * @license http://www.gnu.org/copyleft/gpl.html GNU GPL v3 or later
  */
 class cachestore_redis extends cache_store implements cache_is_configurable {
+    /**
+     * Server line delimiter.
+     * @var string
+     */
+    const SERVER_DELIMITER = "\n";
+
+    /**
+     * Option delimiter.
+     * @var string
+     */
+    const OPTION_DELIMITER = ':';
 
     /**
      * The Redis cache store instance name.
@@ -209,12 +220,21 @@ class cachestore_redis extends cache_store implements cache_is_configurable {
             // During testing this has to be declared as a string.
             $writeservers = is_array($configuration['writeservers'])
                     ? $configuration['writeservers']
-                    : explode(PHP_EOL, $configuration['writeservers']);
+                    : explode(static::SERVER_DELIMITER, $configuration['writeservers']);
 
             foreach ($writeservers as $writeserver) {
                 $this->writeservers[] = static::get_connection_details($writeserver);
             }
         }
+    }
+
+    /**
+     * Convert mixed line endings in a piece of text to Unix-style \n.
+     * @param $text
+     * @return string
+     */
+    protected static function normalise_newlines($text) {
+        return preg_replace('/\r\n?/', "\n", $text);
     }
 
     /**
@@ -225,7 +245,7 @@ class cachestore_redis extends cache_store implements cache_is_configurable {
      */
     public static function get_connection_details($serverline) {
         $connection = new cachestore_redis_connection_details();
-        $parts = explode(':', $serverline);
+        $parts = explode(static::OPTION_DELIMITER, $serverline);
 
         if ($parts[0]) {
             $connection->host = (string)$parts[0];
@@ -464,7 +484,7 @@ class cachestore_redis extends cache_store implements cache_is_configurable {
         return array(
             'persistentconnection' => (bool) $data->persistentconnection,
             'readserver' => $data->readserver,
-            'writeservers' => explode(PHP_EOL, $data->writeservers),
+            'writeservers' => explode(static::SERVER_DELIMITER, $data->writeservers),
         );
     }
 
@@ -486,7 +506,7 @@ class cachestore_redis extends cache_store implements cache_is_configurable {
         }
 
         if (!empty($config['writeservers'])) {
-            $data['writeservers'] = implode(PHP_EOL, $config['writeservers']);
+            $data['writeservers'] = implode(static::SERVER_DELIMITER, $config['writeservers']);
         }
 
         $editform->set_data($data);

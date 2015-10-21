@@ -23,8 +23,10 @@ Add the following options to the site's ```config.php```, somewhere above the
 ```/lib/setup.php``` include, and tailor to your configuration:
 
     define('TEST_CACHESTORE_REDIS_TESTREADSERVER',   '127.0.0.1:6379');
-    define('TEST_CACHESTORE_REDIS_TESTWRITESERVERS', '127.0.0.1:6379' . PHP_EOL
-                                                   . '127.0.0.1:6380');
+    define('TEST_CACHESTORE_REDIS_TESTWRITESERVERS', implode("\n", array(
+        '127.0.0.1:6379',
+        '127.0.0.1:6380',
+    ));
 
 Assuming your environment is correctly configured for PHPUnit testing, you can
 now execute the tests as follows:
