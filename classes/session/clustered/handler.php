@@ -78,7 +78,8 @@ class handler extends base_handler {
 
         $this->writeservers = array();
         $writeservers = explode(
-                PHP_EOL, $CFG->session_redis_clustered_writeservers);
+                cachestore_redis::SERVER_DELIMITER,
+                $CFG->session_redis_clustered_writeservers);
         foreach ($writeservers as $writeserver) {
             $this->writeservers[] = cachestore_redis::get_connection_details(
                     $writeserver);
