@@ -1,0 +1,52 @@
+#!/bin/sh
+# Redis service helper
+
+action="$1"
+instances=3
+server="$(which redis-server)"
+
+start() {
+    for i in $(seq 1 $instances); do
+        dir=$(get_config $i dir)
+        mkdir -p $dir
+        $server "redis${i}.conf" --daemonize yes
+    done
+}
+
+restart() {
+    stop
+    start
+}
+
+stop() {
+    for i in $(seq 1 $instances); do
+        port=$(get_config $i 'port')
+        redis-cli -h 127.0.0.1 -p $port shutdown
+    done
+}
+
+get_config() {
+    instance=$1
+    option=$2
+
+    grep "^${option} " "redis${instance}.conf" | cut -d' ' -f2
+}
+
+status() {
+    ps aux | grep $server | grep -v grep
+}
+
+case "$action" in
+    'start')
+        start
+        ;;
+    'stop')
+        stop
+        ;;
+    'status')
+        status
+        ;;
+    *)
+        echo "Usage: $0 (start|stop|status)"
+        exit 1
+esac
