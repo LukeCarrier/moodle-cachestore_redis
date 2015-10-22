@@ -25,8 +25,8 @@
 namespace cachestore_redis\session\clustered;
 
 use cachestore_redis;
+use cachestore_redis\connection_details;
 use cachestore_redis\session\base_handler;
-use cachestore_redis_connection_details;
 use core\session\exception;
 use Redis;
 
@@ -48,13 +48,13 @@ class handler extends base_handler {
 
     /**
      * Read server connection details.
-     * @var cachestore_redis_connection_details
+     * @var \cachestore_redis\connection_details
      */
     protected $readserver;
 
     /**
      * Write server connection details.
-     * @var cachestore_redis_connection_details
+     * @var \cachestore_redis\connection_details
      */
     protected $writeservers;
 
@@ -121,10 +121,10 @@ class handler extends base_handler {
 
     /**
      * Create a connection object.
-     * @param \cachestore_redis_connection_details $details
+     * @param \cachestore_redis\connection_details $details
      * @return \Redis
      */
-    protected function make_connection(cachestore_redis_connection_details $details) {
+    protected function make_connection(connection_details $details) {
         $connection = new Redis();
         $connection->connect($details->host, $details->port, $details->timeout);
 

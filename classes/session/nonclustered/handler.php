@@ -25,7 +25,7 @@
 namespace cachestore_redis\session\nonclustered;
 
 use cachestore_redis\session\base_handler;
-use cachestore_redis_connection_details;
+use cachestore_redis\connection_details;
 use Redis;
 
 /**
@@ -58,7 +58,7 @@ class handler extends base_handler {
 
     /**
      * Server connection details.
-     * @var \cachestore_redis_connection_details
+     * @var \cachestore_redis\connection_details
      */
     protected $servers;
 
@@ -97,7 +97,7 @@ class handler extends base_handler {
 
     /**
      * Parse save path for connection details.
-     * @return \cachestore_redis
+     * @return \cachestore_redis\connection_details
      */
     protected function get_connection_details() {
         $paths   = explode(static::SAVE_PATH_DELIMITER, $this->savepath);
@@ -110,7 +110,7 @@ class handler extends base_handler {
             $query = array();
             parse_str($uri['query'], $query);
 
-            $details = new cachestore_redis_connection_details();
+            $details = new connection_details();
             $details->host       = array_key_exists('host', $uri) ? $uri['host'] : null;
             $details->port       = array_key_exists('port', $uri) ? $uri['port'] : 6379;
 

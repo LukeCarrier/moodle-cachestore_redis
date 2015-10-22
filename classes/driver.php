@@ -22,6 +22,11 @@
  * @license    http://www.gnu.org/copyleft/gpl.html GNU GPL v3 or later
  */
 
+namespace cachestore_redis;
+
+use cache_definition;
+use Redis;
+
 /**
  * The Redis cache store driver class.
  *
@@ -29,11 +34,11 @@
  * @copyright  2014 Sam Hemelryk
  * @license    http://www.gnu.org/copyleft/gpl.html GNU GPL v3 or later
  */
-class cachestore_redis_driver {
+class driver {
 
     /**
      * The actual Redis connection object.
-     * @var Redis
+     * @var \Redis
      */
     protected $connection;
 
@@ -45,7 +50,7 @@ class cachestore_redis_driver {
 
     /**
      * The interaction method for this redis connection.
-     * @var cachestore_redis_interaction_set
+     * @var \cachestore_redis\interaction_set
      */
     protected $interaction;
 
@@ -90,15 +95,16 @@ class cachestore_redis_driver {
      * @param float $timeout The connection timeout in seconds
      * @param string $persistentid The string to use to identify this connection if it is to be persistent.
      * @param int $retryinterval The retry interval in milliseconds.
-     * @return cachestore_redis_driver
+     * @return \cachestore_redis\driver
      */
     public static function instance($host, $port = 6379, $database = 0, $timeout = null, $persistentid = null,
                                     $retryinterval = null) {
+        /** @var \cachestore_redis\driver[] */
         static $instances = array();
         $hash = crc32($host.' '.$port.' '.$database);
 
         if (!isset($instances[$hash])) {
-            $instances[$hash] = new cachestore_redis_driver($host, $port, $timeout, $persistentid, $retryinterval);
+            $instances[$hash] = new static($host, $port, $timeout, $persistentid, $retryinterval);
         }
 
         /* Maybe we disconnected it elsewhere -- this definitely happens during
@@ -131,7 +137,7 @@ class cachestore_redis_driver {
      * Connects to a Redis server and selects the given database for use.
      *
      * @param int $database
-     * @throws cachestore_redis_exception
+     * @throws \cachestore_redis\exception
      */
     public function connect($database) {
         $this->connection = new Redis();
@@ -169,11 +175,11 @@ class cachestore_redis_driver {
      * Should only be called if authentication is required.
      *
      * @param string $password
-     * @throws cachestore_redis_exception
+     * @throws \cachestore_redis\exception
      */
     public function authenticate($password) {
         if (!$this->is_connected()) {
-            throw new cachestore_redis_exception('exception_operationnotconnected', __METHOD__);
+            throw new exception('exception_operationnotconnected', __METHOD__);
         }
         if (!$this->connection->auth($password)) {
             $this->close();
@@ -205,10 +211,10 @@ class cachestore_redis_driver {
      * Sets the interaction method.
      *
      * @param string $method
-     * @param cache_definition $definition
+     * @param \cache_definition $definition
      */
     public function set_interaction_instance($method, cache_definition $definition) {
-        $class = 'cachestore_redis_interaction_'.$method;
+        $class = sprintf('\cachestore_redis\interaction\interaction_%s', $method);
         $this->interaction = new $class($this->connection, $definition);
     }
 

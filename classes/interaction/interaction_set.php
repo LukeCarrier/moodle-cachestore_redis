@@ -22,6 +22,13 @@
  * @license    http://www.gnu.org/copyleft/gpl.html GNU GPL v3 or later
  */
 
+namespace cachestore_redis\interaction;
+
+use cache;
+use cache_definition;
+use cachestore_redis\interaction;
+use Redis;
+
 /**
  * The Redis standard set interaction method class.
  *
@@ -29,11 +36,11 @@
  * @copyright  2014 Sam Hemelryk
  * @license    http://www.gnu.org/copyleft/gpl.html GNU GPL v3 or later
  */
-class cachestore_redis_interaction_set implements cachestore_redis_interaction {
+class interaction_set implements interaction {
 
     /**
      * The Redis object.
-     * @var Redis
+     * @var \Redis
      */
     protected $redis;
 
@@ -70,8 +77,8 @@ class cachestore_redis_interaction_set implements cachestore_redis_interaction {
     /**
      * Constructs an interaction instance.
      *
-     * @param Redis $redis
-     * @param cache_definition $definition
+     * @param \Redis $redis
+     * @param \cache_definition $definition
      */
     public function __construct(Redis $redis, cache_definition $definition) {
         $this->redis = $redis;

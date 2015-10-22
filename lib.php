@@ -21,6 +21,8 @@
  * @copyright  2014 Sam Hemelryk
  * @license    http://www.gnu.org/copyleft/gpl.html GNU GPL v3 or later
  */
+use cachestore_redis\connection_details;
+use cachestore_redis\driver;
 
 /**
  * The redis cache store class.
@@ -85,27 +87,27 @@ class cachestore_redis extends cache_store implements cache_is_configurable {
 
     /**
      * Connection to read server.
-     * @var cachestore_redis_driver
+     * @var \cachestore_redis\driver
      */
     protected $readconnection = null;
 
     /**
      * Connections to write servers.
-     * @var cachestore_redis_driver[]
+     * @var \cachestore_redis\driver[]
      */
     protected $writeconnections = array();
 
     /**
      * Read server connection information.
      *
-     * @var cachestore_redis_connection_details
+     * @var \cachestore_redis\connection_details
      */
     protected $readserver = null;
 
     /**
      * Write server connection information.
      *
-     * @var cachestore_redis_connection_details[]
+     * @var \cachestore_redis\connection_details[]
      */
     protected $writeservers = array();
 
@@ -244,7 +246,7 @@ class cachestore_redis extends cache_store implements cache_is_configurable {
      * @return mixed[]
      */
     public static function get_connection_details($serverline) {
-        $connection = new cachestore_redis_connection_details();
+        $connection = new connection_details();
         $parts = explode(static::OPTION_DELIMITER, $serverline);
 
         if ($parts[0]) {
@@ -273,8 +275,8 @@ class cachestore_redis extends cache_store implements cache_is_configurable {
         return $connection;
     }
 
-    protected function connect(cachestore_redis_connection_details $details) {
-        $connection = cachestore_redis_driver::instance(
+    protected function connect(connection_details $details) {
+        $connection = driver::instance(
             $details->host,
             $details->port,
             $this->database,

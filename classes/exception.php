@@ -22,6 +22,10 @@
  * @license    http://www.gnu.org/copyleft/gpl.html GNU GPL v3 or later
  */
 
+namespace cachestore_redis;
+
+use moodle_exception;
+
 /**
  * Redis cache store exception.
  *
@@ -29,7 +33,7 @@
  * @copyright  2014 Sam Hemelryk
  * @license    http://www.gnu.org/copyleft/gpl.html GNU GPL v3 or later
  */
-class cachestore_redis_exception extends moodle_exception {
+class exception extends moodle_exception {
 
     /**
      * Constructs a new Redis cache store exception.

@@ -22,6 +22,11 @@
  * @license    http://www.gnu.org/copyleft/gpl.html GNU GPL v3 or later
  */
 
+namespace cachestore_redis;
+
+use cache_definition;
+use Redis;
+
 /**
  * Redis interaction interface.
  *
@@ -32,13 +37,13 @@
  * @copyright  2014 Sam Hemelryk
  * @license    http://www.gnu.org/copyleft/gpl.html GNU GPL v3 or later
  */
-interface cachestore_redis_interaction {
+interface interaction {
 
     /**
      * Constructs an interaction instance.
      *
-     * @param Redis $redis
-     * @param cache_definition $definition
+     * @param \Redis $redis
+     * @param \cache_definition $definition
      */
     public function __construct(Redis $redis, cache_definition $definition);
 

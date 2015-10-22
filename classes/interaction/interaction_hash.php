@@ -22,6 +22,12 @@
  * @license    http://www.gnu.org/copyleft/gpl.html GNU GPL v3 or later
  */
 
+namespace cachestore_redis\interaction;
+
+use cache_definition;
+use cachestore_redis\interaction;
+use Redis;
+
 /**
  * Redis hash interaction method class.
  *
@@ -32,11 +38,11 @@
  * @copyright  2014 Sam Hemelryk
  * @license    http://www.gnu.org/copyleft/gpl.html GNU GPL v3 or later
  */
-class cachestore_redis_interaction_hash implements cachestore_redis_interaction {
+class interaction_hash implements interaction {
 
     /**
      * The Redis object.
-     * @var Redis
+     * @var \Redis
      */
     protected $redis;
 
@@ -49,8 +55,8 @@ class cachestore_redis_interaction_hash implements cachestore_redis_interaction 
     /**
      * Initialises an instance of this interaction method.
      *
-     * @param Redis $redis
-     * @param cache_definition $definition
+     * @param \Redis $redis
+     * @param \cache_definition $definition
      */
     public function __construct(Redis $redis, cache_definition $definition) {
         $this->redis = $redis;
@@ -75,7 +81,12 @@ class cachestore_redis_interaction_hash implements cachestore_redis_interaction 
      * @return mixed
      */
     public function get($key) {
-        return $this->redis->hGet($this->hash, $key);
+        try {
+            return $this->redis->hGet($this->hash, $key);
+        } catch (\RedisException $e) {
+            var_dump($key);
+            throw $e;
+        }
     }
 
     /**

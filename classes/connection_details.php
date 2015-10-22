@@ -22,6 +22,8 @@
  * @license    http://www.gnu.org/copyleft/gpl.html GNU GPL v3 or later
  */
 
+namespace cachestore_redis;
+
 /**
  * The Redis cache store driver class.
  *
@@ -29,7 +31,7 @@
  * @copyright  2014 Sam Hemelryk
  * @license    http://www.gnu.org/copyleft/gpl.html GNU GPL v3 or later
  */
-class cachestore_redis_connection_details  {
+class connection_details {
     /**
      * Hostname.
      * @var string
